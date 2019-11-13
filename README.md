@@ -24,4 +24,5 @@ Dumps to ble_data.dump
 
 ## Convert a specific app partition into an ELF file
 Converts ota_0 partition into ELF. Writes to ota_0.elf
+
 `$ python3 esp32_image_parser.py create_elf espwroom32.bin -partition ota_0 -output ota_0.elf`
