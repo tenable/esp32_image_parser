@@ -1,6 +1,8 @@
 # ESP32 Firmware Image to ELF
 This tool can be used to convert a flash dump from an ESP32 into an ELF file.
 
+Authors: @lynerc and @\_NickMiles\_
+
 There are three actions:
 - **show_partitions** - will display all of the partitions found in an image file.
 - **dump_partition** - will dump the raw bytes of a specified partition into a file.
