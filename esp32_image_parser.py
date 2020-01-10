@@ -76,6 +76,7 @@ def image2elf(filename, output_file, verbose=False):
     idx = 0
     ##### build out the section data #####
     ######################################
+    iram_seen = False
     for seg in sorted(image.segments, key=lambda s:s.addr):
         idx += 1
 
@@ -88,11 +89,13 @@ def image2elf(filename, output_file, verbose=False):
 
         section_name = ''
         # handle special case
+        # .iram0.vectors seems to be the first one.
         if segment_name == 'IRAM':
-            if len(seg.data) == 0x400:
+            if iram_seen == False:
                 section_name = '.iram0.vectors'
             else:
                 section_name = '.iram0.text'
+            iram_seen = True
         else:
             section_name = section_map[segment_name]
 
