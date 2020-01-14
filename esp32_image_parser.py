@@ -37,6 +37,16 @@ def calcPhFlg(flags):
 
 def image2elf(filename, output_file, verbose=False):
     image = LoadFirmwareImage('esp32', filename)
+
+    # parse image name
+    image_name = image_base_name(filename)
+
+    elf = ELF(e_machine=EM.EM_XTENSA, e_data=ELFDATA.ELFDATA2LSB)
+    elf.Elf.Ehdr.e_entry = image.entrypoint
+
+    print_verbose(verbose, "Entrypoint " + str(hex(image.entrypoint)))
+
+    # maps segment names to ELF sections
     section_map = {
         'DROM'                      : '.flash.rodata',
         'BYTE_ACCESSIBLE, DRAM, DMA': '.dram0.data',
@@ -44,31 +54,15 @@ def image2elf(filename, output_file, verbose=False):
         'IROM'                      : '.flash.text'
     }
 
-    # parse image name
-    image_name = image_base_name(filename)
-
-    # iram is split into .vectors and .text
-    # however, the .vectors section can be identified by its unique 0x400 size
-
-    section_data = {}
-    elf = ELF(e_machine=EM.EM_XTENSA, e_data=ELFDATA.ELFDATA2LSB)
-    elf.Elf.Ehdr.e_entry = image.entrypoint
-
-    # TODO bss is not accounted for
-    # 00     .flash.rodata 
-    # 01     .dram0.data .dram0.bss 
-    # 02     .iram0.vectors .iram0.text 
-    # 03     .flash.text
-    print_verbose(verbose, "Entrypoint " + str(hex(image.entrypoint)))
-
     section_ids = {}
+    section_data = {}
 
-    # map to hold pre-defined elf section attributes
+    # map to hold pre-defined ELF section attributes
     sect_attr_map = {
             '.flash.rodata' : {'ES':0x00, 'Flg':'WA',  'Lk':0, 'Inf':0, 'Al':16},
             '.dram0.data'   : {'ES':0x00, 'Flg':'WA',  'Lk':0, 'Inf':0, 'Al':16},
             '.iram0.vectors': {'ES':0x00, 'Flg':'AX',  'Lk':0, 'Inf':0, 'Al':4},
-            '.iram0.text'   : {'ES':0x00, 'Flg':'WAX', 'Lk':0, 'Inf':0, 'Al':4},
+            '.iram0.text'   : {'ES':0x00, 'Flg':'WAX', 'Lk':0, 'Inf':0, 'Al':4},    # TODO WAX? or just AX?
             '.flash.text'   : {'ES':0x00, 'Flg':'AX',  'Lk':0, 'Inf':0, 'Al':4}
     }
     # TODO rtc not accounted for
@@ -89,6 +83,7 @@ def image2elf(filename, output_file, verbose=False):
 
         section_name = ''
         # handle special case
+        # iram is split into .vectors and .text
         # .iram0.vectors seems to be the first one.
         if segment_name == 'IRAM':
             if iram_seen == False:
