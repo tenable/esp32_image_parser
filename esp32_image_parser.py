@@ -96,7 +96,10 @@ def image2elf(filename, output_file, verbose=False):
                 section_name = '.iram0.text'
             iram_seen = True
         else:
-            section_name = section_map[segment_name]
+            if segment_name in section_map:
+                section_name = section_map[segment_name]
+            else:
+                print("Unsure what to do with segment: " + segment_name)
 
         # if we have a mapped segment <-> section
         # add the elf section
