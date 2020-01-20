@@ -39,6 +39,7 @@ def image2elf(filename, output_file, verbose=False):
     image = LoadFirmwareImage('esp32', filename)
 
     # parse image name
+    # e.g. 'image.bin' turns to 'image'
     image_name = image_base_name(filename)
 
     elf = ELF(e_machine=EM.EM_XTENSA, e_data=ELFDATA.ELFDATA2LSB)
@@ -50,29 +51,32 @@ def image2elf(filename, output_file, verbose=False):
     section_map = {
         'DROM'                      : '.flash.rodata',
         'BYTE_ACCESSIBLE, DRAM, DMA': '.dram0.data',
-        'RTC_IRAM'                  : '.rtc.text', # TODO double-check
-        'IROM'                      : '.flash.text'
+        'IROM'                      : '.flash.text',
+        #'RTC_IRAM'                  : '.rtc.text' TODO
     }
 
-    section_ids = {}
-    section_data = {}
-
-    # map to hold pre-defined ELF section attributes
+    # map to hold pre-defined ELF section header attributes
+    # http://man7.org/linux/man-pages/man5/elf.5.html
+    # ES    : sh_entsize
+    # Flg   : sh_flags
+    # Lk    : sh_link
+    # Inf   : sh_info
+    # Al    : sh_addralign
     sect_attr_map = {
             '.flash.rodata' : {'ES':0x00, 'Flg':'WA',  'Lk':0, 'Inf':0, 'Al':16},
             '.dram0.data'   : {'ES':0x00, 'Flg':'WA',  'Lk':0, 'Inf':0, 'Al':16},
             '.iram0.vectors': {'ES':0x00, 'Flg':'AX',  'Lk':0, 'Inf':0, 'Al':4},
-            '.iram0.text'   : {'ES':0x00, 'Flg':'WAX', 'Lk':0, 'Inf':0, 'Al':4},    # TODO WAX? or just AX?
+            '.iram0.text'   : {'ES':0x00, 'Flg':'AX',  'Lk':0, 'Inf':0, 'Al':4},
             '.flash.text'   : {'ES':0x00, 'Flg':'AX',  'Lk':0, 'Inf':0, 'Al':4}
     }
     # TODO rtc not accounted for
 
-    idx = 0
+    section_data = {}
+
     ##### build out the section data #####
     ######################################
     iram_seen = False
     for seg in sorted(image.segments, key=lambda s:s.addr):
-        idx += 1
 
         # name from image
         segment_name = ", ".join([seg_range[2] for seg_range in image.ROM_LOADER.MEMORY_MAP if seg_range[0] <= seg.addr < seg_range[1]])
@@ -113,20 +117,20 @@ def image2elf(filename, output_file, verbose=False):
         if name in sect_attr_map:
             sect = sect_attr_map[name]
             flg = calcShFlg(sect['Flg'])
-            section_ids[name] = elf._append_section(name, data, addr,SHT.SHT_PROGBITS, flg, sect['Lk'], sect['Inf'], sect['Al'], sect['ES'])
+            elf._append_section(name, data, addr,SHT.SHT_PROGBITS, flg, sect['Lk'], sect['Inf'], sect['Al'], sect['ES'])
         else:
-            section_ids[name] = elf.append_section(name, data, addr)
+            elf.append_section(name, data, addr)
 
     elf.append_special_section('.strtab')
     elf.append_special_section('.symtab')
     add_elf_symbols(elf)
 
     # segment flags
-    # TODO double check this stuff
+    # TODO rtc
     segments = {
         '.flash.rodata' : 'rw',
         '.dram0.data'   : 'rw',
-        '.iram0.vectors': 'rwx',
+        '.iram0.vectors': 'rx',
         '.flash.text'   : 'rx'
     }
 
@@ -134,6 +138,8 @@ def image2elf(filename, output_file, verbose=False):
     elf.Elf.Phdr_table.pop()
 
     bytes(elf) # kind of a hack, but __bytes__() calculates offsets in elf object
+
+    # TODO this logic might change as we add support for rtc
     size_of_phdrs = len(Elf32_Phdr()) * len(segments) # to pre-calculate program header offsets
 
     ##### add the segments ####
@@ -158,8 +164,7 @@ def image2elf(filename, output_file, verbose=False):
         # build program header
         Phdr = Elf32_Phdr(PT.PT_LOAD, p_offset=offset, p_vaddr=addr,
                 p_paddr=addr, p_filesz=size, p_memsz=size,
-                p_flags=p_flags, p_align=0x1000, little=elf.little)
-
+                p_flags=p_flags, p_align=align, little=elf.little)
 
         print_verbose(verbose, name + ": " + str(Phdr))
         elf.Elf.Phdr_table.append(Phdr)
