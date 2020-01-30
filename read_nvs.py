@@ -27,7 +27,7 @@ entry_state_descs = {
 }
 
 nvs_sector_states = {
-        0xFFFFFFFF : "EMTPY",
+        0xFFFFFFFF : "EMPTY",
         0xFFFFFFFE : "ACTIVE",
         0xFFFFFFFC : "FULL",
         0xFFFFFFF8 : "FREEING",
@@ -234,7 +234,7 @@ def read_nvs_pages(fh):
             temp = temp & 3
             entry_state_bitmap_decoded = entry_state_bitmap_decoded + str(temp)
 
-        print("  page entry state bitmape (decoded) : %s" % (entry_state_bitmap_decoded))
+        print("  page entry state bitmap (decoded) : %s" % (entry_state_bitmap_decoded))
         page_data["page_entry_state_bitmap"] = entry_state_bitmap_decoded 
         sector_pos += 4096
         x += 1
