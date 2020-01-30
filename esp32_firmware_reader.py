@@ -38,13 +38,13 @@ def read_partition_table(fh, verbose=False):
         if(magic == b'\xff\xff'):
             data = magic + fh.read(30)
             if data == b'\xff'*32:
-                print("Done")
+                print_verbose(verbose,"Done")
                 return partition_table
         # md5sum
         elif(magic == b'\xeb\xeb'):
             data = magic + fh.read(30)
-            print("MD5sum: ")
-            print(data[16:].hex())
+            print_verbose(verbose,"MD5sum: ")
+            print_verbose(verbose,data[16:].hex())
             continue
         # is partition?
         elif(magic[0] != 0xAA or magic[1] != 0x50):
