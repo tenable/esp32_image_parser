@@ -227,6 +227,10 @@ def main():
         part_table = read_partition_table(fh, verbose)
 
         if args.action in ['dump_partition', 'create_elf']:
+            if (args.partition is None):
+                print("Need partition name")
+                return
+
             part_name = args.partition
             
             if args.action == 'dump_partition' and args.output is not None:
