@@ -36,4 +36,5 @@ Dumps the nvs partition
 `$ python3 esp32_image_parser.py dump_nvs esp32_flashdump.bin -partition nvs`
 
 Dumps the nvs partition as a JSON
+
 `$ python3 esp32_image_parser.py dump_nvs flashdump/esp32_flashdump.bin -partition nvs -nvs_output_type json`
