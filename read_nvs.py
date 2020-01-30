@@ -1,12 +1,8 @@
-import sys
-import json
-import struct
-import sys
 import os
+import struct
 import base64
 import binascii
 from hexdump import hexdump
-import argparse
 
 nvs_types =  {
   0x01: "U8",
@@ -40,7 +36,7 @@ nvs_sector_states = {
 
 namespaces = {}
 
-def parse_entries(entries, entry_state_bitmap):
+def parse_nvs_entries(entries, entry_state_bitmap):
     entries_out = []
     i = 0
     while i < 126:
@@ -196,7 +192,7 @@ def parse_entries(entries, entry_state_bitmap):
         print("")
     return entries_out
 
-def read_pages(fh):
+def read_nvs_pages(fh):
     pages = []
     fh.seek(0, os.SEEK_END)
     file_len = fh.tell()
@@ -249,7 +245,7 @@ def read_pages(fh):
             entry_data = fh.read(32)
             entries.append(entry_data)
 
-        page_data["entries"] = parse_entries(entries, entry_state_bitmap_decoded)
+        page_data["entries"] = parse_nvs_entries(entries, entry_state_bitmap_decoded)
 
         print("")
         print("")
@@ -260,20 +256,20 @@ def read_pages(fh):
     print("")
     return pages
 
-parser = argparse.ArgumentParser()
-parser.add_argument("nvs_bin_file", help="nvs partition binary file", type=str)
-parser.add_argument("-output_type", help="output type", type=str, choices=["text", "json"], default="text")
+#parser = argparse.ArgumentParser()
+#parser.add_argument("nvs_bin_file", help="nvs partition binary file", type=str)
+#parser.add_argument("-output_type", help="output type", type=str, choices=["text", "json"], default="text")
 
-args = parser.parse_args()
+#args = parser.parse_args()
 
-with open(args.nvs_bin_file, 'rb') as fh:
-  if(args.output_type != "text"):
-    sys.stdout = open(os.devnull, 'w') # block print()
+#with open(args.nvs_bin_file, 'rb') as fh:
+#  if(args.output_type != "text"):
+#    sys.stdout = open(os.devnull, 'w') # block print()
 
-  pages = read_pages(fh)
+#  pages = read_pages(fh)
 
-  sys.stdout = sys.stdout = sys.__stdout__ # re-enable print()
+#  sys.stdout = sys.stdout = sys.__stdout__ # re-enable print()
 
-  if(args.output_type == "json"):
-      print(json.dumps(pages))
+#  if(args.output_type == "json"):
+#      print(json.dumps(pages))
 

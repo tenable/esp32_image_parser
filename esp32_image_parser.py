@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
 # Convert an ESP 32 OTA partition into an ELF
-
+import sys
+import json
 import os, argparse
 from makeelf.elf import *
 from esptool import *
 from esp32_firmware_reader import *
+from read_nvs import *
 
 def image_base_name(path):
     filename_w_ext = os.path.basename(path)
@@ -209,9 +211,10 @@ def flash_dump_to_elf(filename, partition):
 def main():
     desc = 'ESP32 Firmware Image Parser Utility'
     arg_parser = argparse.ArgumentParser(description=desc)
-    arg_parser.add_argument('action', choices=['show_partitions', 'dump_partition', 'create_elf'], help='Action to take')
+    arg_parser.add_argument('action', choices=['show_partitions', 'dump_partition', 'create_elf', 'dump_nvs'], help='Action to take')
     arg_parser.add_argument('input', help='Firmware image input file')
     arg_parser.add_argument('-output', help='Output file name')
+    arg_parser.add_argument('-nvs_output_type', help='output type for nvs dump', type=str, choices=["text","json"], default="text")
     arg_parser.add_argument('-partition', help='Partition name (e.g. ota_0)')
     arg_parser.add_argument('-v', default=False, help='Verbose output', action='store_true')
 
@@ -226,7 +229,7 @@ def main():
         # parse that ish
         part_table = read_partition_table(fh, verbose)
 
-        if args.action in ['dump_partition', 'create_elf']:
+        if args.action in ['dump_partition', 'create_elf', 'dump_nvs']:
             if (args.partition is None):
                 print("Need partition name")
                 return
@@ -254,8 +257,19 @@ def main():
                             # we have to load from a file
                             output_file = args.output
                             image2elf(dump_file, output_file, verbose)
+                elif args.action == 'dump_nvs':
+                    if part['type'] != 1 or part['subtype'] != 2: # Wifi NVS partition (4 is for encryption key)
+                        print("Uh oh... bad partition type. Can only dump NVS partition type.")
+                    with open(dump_file, 'rb') as fh:
+                        if(args.nvs_output_type != "text"):
+                            sys.stdout = open(os.devnull, 'w') # block print()
+                        pages = read_nvs_pages(fh)
+                        sys.stdout = sys.stdout = sys.__stdout__ # re-enable print()
+                        if(args.nvs_output_type == "json"):
+                            print(json.dumps(pages))
             else:
                 print("Partition '" + part_name + "' not found.")
+                pages = read_nvs_pages(dump_file)
 
 if __name__ == '__main__':
     main()
