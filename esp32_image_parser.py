@@ -133,7 +133,7 @@ def image2elf(filename, output_file, verbose=False):
     segments = {
         '.flash.rodata' : 'rw',
         '.dram0.data'   : 'rw',
-        '.iram0.vectors': 'rx',
+        '.iram0.vectors': 'rwx',
         '.flash.text'   : 'rx'
     }
 
