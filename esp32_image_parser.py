@@ -269,7 +269,6 @@ def main():
                             print(json.dumps(pages))
             else:
                 print("Partition '" + part_name + "' not found.")
-                pages = read_nvs_pages(dump_file)
 
 if __name__ == '__main__':
     main()
