@@ -34,8 +34,20 @@ def read_partition_table(fh, verbose=False):
     print_verbose(verbose, "reading partition table...")
     for i in range(0, 95): # max 95 partitions
         magic = fh.read(2)
-        if(magic[0] != 0xAA or magic[1] != 0x50):
-            print('Magic bytes are fudged')
+        # end marker
+        if(magic == b'\xff\xff'):
+            data = magic + fh.read(30)
+            if data == b'\xff'*32:
+                print_verbose(verbose,"Done")
+                return partition_table
+        # md5sum
+        elif(magic == b'\xeb\xeb'):
+            data = magic + fh.read(30)
+            print_verbose(verbose,"MD5sum: ")
+            print_verbose(verbose,data[16:].hex())
+            continue
+        # is partition?
+        elif(magic[0] != 0xAA or magic[1] != 0x50):
             return partition_table
 
         print_verbose(verbose, "entry %d:" % (i))
