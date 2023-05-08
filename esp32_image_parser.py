@@ -6,8 +6,11 @@ import json
 import os, argparse
 from makeelf.elf import *
 from esptool import *
+from esptool.bin_image import *
 from esp32_firmware_reader import *
 from read_nvs import *
+
+symbols_dump = os.path.dirname(os.path.realpath(__file__)) + "/symbols_dump.txt"
 
 def image_base_name(path):
     filename_w_ext = os.path.basename(path)
@@ -52,6 +55,7 @@ def image2elf(filename, output_file, verbose=False):
     # maps segment names to ELF sections
     section_map = {
         'DROM'                      : '.flash.rodata',
+        'BYTE_ACCESSIBLE, DRAM'     : '.dram0.data',
         'BYTE_ACCESSIBLE, DRAM, DMA': '.dram0.data',
         'IROM'                      : '.flash.text',
         #'RTC_IRAM'                  : '.rtc.text' TODO
@@ -186,7 +190,7 @@ def image2elf(filename, output_file, verbose=False):
 
 def add_elf_symbols(elf):
 
-    fh = open("symbols_dump.txt", "r")
+    fh = open(symbols_dump, "r")
     lines = fh.readlines()
 
     bind_map = {"LOCAL" : STB.STB_LOCAL, "GLOBAL" : STB.STB_GLOBAL}
