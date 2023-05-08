@@ -55,6 +55,7 @@ def image2elf(filename, output_file, verbose=False):
     # maps segment names to ELF sections
     section_map = {
         'DROM'                      : '.flash.rodata',
+        'BYTE_ACCESSIBLE, DRAM'     : '.dram0.data',
         'BYTE_ACCESSIBLE, DRAM, DMA': '.dram0.data',
         'IROM'                      : '.flash.text',
         #'RTC_IRAM'                  : '.rtc.text' TODO
