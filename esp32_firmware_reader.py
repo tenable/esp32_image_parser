@@ -18,9 +18,15 @@ for i in range(0,16):
 
 PART_SUBTYPES_DATA = {
   0x00: "OTA",
-  0x01: "RF",
-  0x02: "WIFI",
-  0x04: "NVS"
+  0x01: "PHY",
+  0x02: "NVS",
+  0x03: "COREDUMP",
+  0x04: "NVS KEYS",
+  0x05: "EFUSE",
+  0x06: "UNDEFINED",
+  0x80: "ESPHTTPD",
+  0x81: "FAT",
+  0x82: "SPIFFS"
 }
 
 def print_verbose(verbose, value):
