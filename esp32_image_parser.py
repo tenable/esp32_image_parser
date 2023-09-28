@@ -6,6 +6,7 @@ import json
 import os, argparse
 from makeelf.elf import *
 from esptool import *
+from esptool.bin_image import *
 from esp32_firmware_reader import *
 from read_nvs import *
 
