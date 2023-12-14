@@ -6,6 +6,7 @@ import json
 import os, argparse
 from makeelf.elf import *
 from esptool import *
+from esptool.bin_image import *
 from esp32_firmware_reader import *
 from read_nvs import *
 
@@ -38,13 +39,13 @@ def calcPhFlg(flags):
     return p_flags
 
 def image2elf(filename, output_file, verbose=False):
-    image = LoadFirmwareImage('esp32', filename)
+    image = LoadFirmwareImage('esp32c3', filename)
 
     # parse image name
     # e.g. 'image.bin' turns to 'image'
     image_name = image_base_name(filename)
 
-    elf = ELF(e_machine=EM.EM_XTENSA, e_data=ELFDATA.ELFDATA2LSB)
+    elf = ELF(e_machine=EM.EM_RISCV, e_data=ELFDATA.ELFDATA2LSB)
     elf.Elf.Ehdr.e_entry = image.entrypoint
 
     print_verbose(verbose, "Entrypoint " + str(hex(image.entrypoint)))
@@ -52,7 +53,7 @@ def image2elf(filename, output_file, verbose=False):
     # maps segment names to ELF sections
     section_map = {
         'DROM'                      : '.flash.rodata',
-        'BYTE_ACCESSIBLE, DRAM, DMA': '.dram0.data',
+        'DRAM, BYTE_ACCESSIBLE'     : '.dram0.data',
         'IROM'                      : '.flash.text',
         #'RTC_IRAM'                  : '.rtc.text' TODO
     }
