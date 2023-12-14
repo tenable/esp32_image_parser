@@ -28,7 +28,7 @@ def print_verbose(verbose, value):
         print(value)
 
 def read_partition_table(fh, verbose=False):
-    fh.seek(0x8000)
+    fh.seek(0x10000)
     partition_table = {}
 
     print_verbose(verbose, "reading partition table...")
