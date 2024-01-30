@@ -27,8 +27,8 @@ def print_verbose(verbose, value):
     if verbose:
         print(value)
 
-def read_partition_table(fh, verbose=False):
-    fh.seek(0x8000)
+def read_partition_table(fh, verbose=False, p_offset=0x8000):
+    fh.seek(p_offset)
     partition_table = {}
 
     print_verbose(verbose, "reading partition table...")
