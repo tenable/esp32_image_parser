@@ -8,6 +8,7 @@ from makeelf.elf import *
 from esptool import *
 from esp32_firmware_reader import *
 from read_nvs import *
+from esptool.bin_image import *
 
 def image_base_name(path):
     filename_w_ext = os.path.basename(path)
